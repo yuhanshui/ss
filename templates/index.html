@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <title>目标管理器</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f6f7fb;
+        color: #1f2933;
+      }
+
+      .container {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem 3rem;
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 1.5rem;
+      }
+
+      .messages {
+        background: #fff3cd;
+        border: 1px solid #ffeeba;
+        color: #8a6d3b;
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+        list-style: none;
+      }
+
+      .form-card,
+      .goal-card {
+        background: #ffffff;
+        border-radius: 0.75rem;
+        padding: 1.25rem 1.5rem;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+        margin-bottom: 1.5rem;
+      }
+
+      label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+
+      input[type="text"],
+      select {
+        width: 100%;
+        padding: 0.6rem 0.75rem;
+        border-radius: 0.5rem;
+        border: 1px solid #d1d9e6;
+        margin-bottom: 1rem;
+        font-size: 1rem;
+      }
+
+      button {
+        background: #2563eb;
+        color: #ffffff;
+        border: none;
+        padding: 0.6rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.95rem;
+        cursor: pointer;
+      }
+
+      button:hover,
+      button:focus {
+        background: #1d4ed8;
+      }
+
+      ul.goal-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .goal-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #eef2f7;
+      }
+
+      .goal-item:last-child {
+        border-bottom: none;
+      }
+
+      .goal-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+
+      .goal-name {
+        font-weight: 600;
+      }
+
+      .status-label {
+        font-size: 0.95rem;
+        color: #52606d;
+      }
+
+      .empty-placeholder {
+        text-align: center;
+        color: #52606d;
+        padding: 1rem 0;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="container">
+      <h1>目标管理器</h1>
+
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <ul class="messages">
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      {% endwith %}
+
+      <section class="form-card">
+        <h2>添加新目标</h2>
+        <form method="post" action="{{ url_for('add_goal_route') }}">
+          <label for="name">目标名称</label>
+          <input id="name" name="name" type="text" placeholder="例如：阅读 30 分钟" required />
+
+          <label for="frequency">频率</label>
+          <select id="frequency" name="frequency">
+            {% for freq in frequencies %}
+              <option value="{{ freq }}">{{ frequency_labels.get(freq, freq) }}</option>
+            {% endfor %}
+          </select>
+
+          <button type="submit">添加目标</button>
+        </form>
+      </section>
+
+      <section>
+        <h2>当前目标</h2>
+        {% if not has_goals %}
+          <p class="empty-placeholder">暂无目标，使用上方表单添加一个吧。</p>
+        {% else %}
+          {% for freq in frequencies %}
+            {% set goals = goals_by_frequency.get(freq) %}
+            {% if goals %}
+              <article class="goal-card">
+                <h3>{{ frequency_labels.get(freq, freq) }}</h3>
+                <ul class="goal-list">
+                  {% for goal in goals %}
+                    <li class="goal-item">
+                      <div class="goal-info">
+                        <span class="goal-name">{{ goal.name }}</span>
+                        <span class="status-label">{{ status_labels[goal.status] }}</span>
+                      </div>
+                      <form method="post" action="{{ url_for('update_status_route') }}">
+                        <input type="hidden" name="name" value="{{ goal.name }}" />
+                        <input type="hidden" name="frequency" value="{{ freq }}" />
+                        {% if goal.status is sameas true %}
+                          <input type="hidden" name="done" value="false" />
+                          <button type="submit">标记未完成</button>
+                        {% else %}
+                          <input type="hidden" name="done" value="true" />
+                          <button type="submit">标记完成</button>
+                        {% endif %}
+                      </form>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </article>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+      </section>
+    </main>
+  </body>
+</html>
