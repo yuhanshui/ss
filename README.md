@@ -31,3 +31,29 @@
    ```
 
 建议把提醒命令加入系统的计划任务（如 Windows 任务计划程序、macOS/Linux 的 cron），每天自动运行一次即可完成日常提醒。
+
+## 运行 Web 界面
+
+除了命令行工具，还可以启动一个基于 Flask 的简单网页来管理目标：
+
+1. 安装依赖（如果尚未安装）：
+
+   ```bash
+   pip install flask
+   ```
+
+2. 在项目根目录启动开发服务器：
+
+   ```bash
+   FLASK_APP=web_app.py flask run
+   ```
+
+   或者使用较新的写法：
+
+   ```bash
+   python -m flask --app web_app run --debug
+   ```
+
+3. 打开浏览器访问 `http://127.0.0.1:5000/`，即可通过网页查看、添加或勾选目标。
+
+部署到服务器时，可以将 `web_app:app` 作为 WSGI 入口，交给如 Gunicorn、uWSGI 等 WSGI 容器或任何支持 WSGI 的平台来运行。
